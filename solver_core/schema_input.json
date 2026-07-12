@@ -1,0 +1,598 @@
+{
+  "$defs": {
+    "ChainNode": {
+      "properties": {
+        "day_offset": {
+          "title": "Day Offset",
+          "type": "integer"
+        },
+        "candidates": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Candidates",
+          "type": "array"
+        },
+        "is_rest": {
+          "default": false,
+          "title": "Is Rest",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "day_offset"
+      ],
+      "title": "ChainNode",
+      "type": "object"
+    },
+    "DailyDemand": {
+      "properties": {
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "min_total": {
+          "default": 0,
+          "title": "Min Total",
+          "type": "integer"
+        },
+        "max_total": {
+          "default": 999,
+          "title": "Max Total",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "date"
+      ],
+      "title": "DailyDemand",
+      "type": "object"
+    },
+    "FixedAssignment": {
+      "properties": {
+        "member_id": {
+          "title": "Member Id",
+          "type": "string"
+        },
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "type": {
+          "title": "Type",
+          "type": "string"
+        },
+        "pattern_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pattern Id"
+        }
+      },
+      "required": [
+        "member_id",
+        "date",
+        "type"
+      ],
+      "title": "FixedAssignment",
+      "type": "object"
+    },
+    "ForbiddenTransition": {
+      "properties": {
+        "from_pattern_id": {
+          "title": "From Pattern Id",
+          "type": "string"
+        },
+        "to_pattern_id": {
+          "title": "To Pattern Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "from_pattern_id",
+        "to_pattern_id"
+      ],
+      "title": "ForbiddenTransition",
+      "type": "object"
+    },
+    "Group": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "member_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Member Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "Group",
+      "type": "object"
+    },
+    "GroupDemand": {
+      "properties": {
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "group_id": {
+          "title": "Group Id",
+          "type": "string"
+        },
+        "pattern_id": {
+          "title": "Pattern Id",
+          "type": "string"
+        },
+        "min_count": {
+          "default": 0,
+          "title": "Min Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "date",
+        "group_id",
+        "pattern_id"
+      ],
+      "title": "GroupDemand",
+      "type": "object"
+    },
+    "Member": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "available_pattern_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Available Pattern Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "Member",
+      "type": "object"
+    },
+    "PatternChain": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "trigger_pattern_id": {
+          "title": "Trigger Pattern Id",
+          "type": "string"
+        },
+        "nodes": {
+          "items": {
+            "$ref": "#/$defs/ChainNode"
+          },
+          "title": "Nodes",
+          "type": "array"
+        },
+        "total_length": {
+          "default": 0,
+          "title": "Total Length",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "trigger_pattern_id"
+      ],
+      "title": "PatternChain",
+      "type": "object"
+    },
+    "PatternType": {
+      "enum": [
+        "NORMAL",
+        "REST",
+        "LEAVE",
+        "TRAINING",
+        "MEETING",
+        "ONCALL",
+        "HOLIDAY",
+        "COMPANION"
+      ],
+      "title": "PatternType",
+      "type": "string"
+    },
+    "PeriodCarryOver": {
+      "properties": {
+        "member_id": {
+          "title": "Member Id",
+          "type": "string"
+        },
+        "last_day_pattern_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Last Day Pattern Id"
+        },
+        "last_n_days_patterns": {
+          "items": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "title": "Last N Days Patterns",
+          "type": "array"
+        },
+        "trailing_work_days": {
+          "default": 0,
+          "title": "Trailing Work Days",
+          "type": "integer"
+        },
+        "trailing_rest_days": {
+          "default": 0,
+          "title": "Trailing Rest Days",
+          "type": "integer"
+        },
+        "last_week_work_days": {
+          "default": 0,
+          "title": "Last Week Work Days",
+          "type": "integer"
+        },
+        "last_week_work_hours": {
+          "default": 0.0,
+          "title": "Last Week Work Hours",
+          "type": "number"
+        }
+      },
+      "required": [
+        "member_id"
+      ],
+      "title": "PeriodCarryOver",
+      "type": "object"
+    },
+    "PersonConstraint": {
+      "properties": {
+        "member_id": {
+          "title": "Member Id",
+          "type": "string"
+        },
+        "weekly_work_days_min": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weekly Work Days Min"
+        },
+        "weekly_work_days_max": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weekly Work Days Max"
+        },
+        "period_work_days_min": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period Work Days Min"
+        },
+        "period_work_days_max": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period Work Days Max"
+        },
+        "weekly_work_hours_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weekly Work Hours Min"
+        },
+        "weekly_work_hours_max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Weekly Work Hours Max"
+        },
+        "period_work_hours_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period Work Hours Min"
+        },
+        "period_work_hours_max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Period Work Hours Max"
+        },
+        "max_consecutive_work_days": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Consecutive Work Days"
+        },
+        "max_consecutive_rest_days": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Consecutive Rest Days"
+        }
+      },
+      "required": [
+        "member_id"
+      ],
+      "title": "PersonConstraint",
+      "type": "object"
+    },
+    "ShiftPattern": {
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "type": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/PatternType"
+            }
+          ],
+          "default": "NORMAL"
+        },
+        "start_time": {
+          "format": "time",
+          "title": "Start Time",
+          "type": "string"
+        },
+        "end_time": {
+          "format": "time",
+          "title": "End Time",
+          "type": "string"
+        },
+        "break_hours": {
+          "default": 0.0,
+          "title": "Break Hours",
+          "type": "number"
+        },
+        "work_hours": {
+          "title": "Work Hours",
+          "type": "number"
+        },
+        "is_companion": {
+          "default": false,
+          "title": "Is Companion",
+          "type": "boolean"
+        },
+        "color_code": {
+          "default": "#808080",
+          "title": "Color Code",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "start_time",
+        "end_time",
+        "work_hours"
+      ],
+      "title": "ShiftPattern",
+      "type": "object"
+    },
+    "SolverConfig": {
+      "properties": {
+        "time_limit_seconds": {
+          "default": 120,
+          "title": "Time Limit Seconds",
+          "type": "integer"
+        },
+        "week_start_day": {
+          "default": 1,
+          "title": "Week Start Day",
+          "type": "integer"
+        },
+        "stage1_ratio": {
+          "default": 0.4,
+          "title": "Stage1 Ratio",
+          "type": "number"
+        },
+        "stage2_ratio": {
+          "default": 0.4,
+          "title": "Stage2 Ratio",
+          "type": "number"
+        }
+      },
+      "title": "SolverConfig",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "start_date": {
+      "format": "date",
+      "title": "Start Date",
+      "type": "string"
+    },
+    "num_days": {
+      "title": "Num Days",
+      "type": "integer"
+    },
+    "patterns": {
+      "items": {
+        "$ref": "#/$defs/ShiftPattern"
+      },
+      "title": "Patterns",
+      "type": "array"
+    },
+    "members": {
+      "items": {
+        "$ref": "#/$defs/Member"
+      },
+      "title": "Members",
+      "type": "array"
+    },
+    "person_constraints": {
+      "items": {
+        "$ref": "#/$defs/PersonConstraint"
+      },
+      "title": "Person Constraints",
+      "type": "array"
+    },
+    "groups": {
+      "items": {
+        "$ref": "#/$defs/Group"
+      },
+      "title": "Groups",
+      "type": "array"
+    },
+    "forbidden_transitions": {
+      "items": {
+        "$ref": "#/$defs/ForbiddenTransition"
+      },
+      "title": "Forbidden Transitions",
+      "type": "array"
+    },
+    "pattern_chains": {
+      "items": {
+        "$ref": "#/$defs/PatternChain"
+      },
+      "title": "Pattern Chains",
+      "type": "array"
+    },
+    "fixed_assignments": {
+      "items": {
+        "$ref": "#/$defs/FixedAssignment"
+      },
+      "title": "Fixed Assignments",
+      "type": "array"
+    },
+    "daily_demands": {
+      "items": {
+        "$ref": "#/$defs/DailyDemand"
+      },
+      "title": "Daily Demands",
+      "type": "array"
+    },
+    "group_demands": {
+      "items": {
+        "$ref": "#/$defs/GroupDemand"
+      },
+      "title": "Group Demands",
+      "type": "array"
+    },
+    "carry_over": {
+      "items": {
+        "$ref": "#/$defs/PeriodCarryOver"
+      },
+      "title": "Carry Over",
+      "type": "array"
+    },
+    "config": {
+      "$ref": "#/$defs/SolverConfig"
+    }
+  },
+  "required": [
+    "start_date",
+    "num_days",
+    "patterns",
+    "members"
+  ],
+  "title": "SolverInput",
+  "type": "object"
+}

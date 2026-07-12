@@ -1,0 +1,32 @@
+[project]
+name = "shift-scheduler"
+version = "0.2.0"
+description = "Automatic shift scheduling system using CP-SAT solver"
+requires-python = ">=3.11"
+dependencies = [
+    "ortools>=9.10",
+    "pydantic>=2.0",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "sqlalchemy[asyncio]>=2.0",
+    "aiosqlite>=0.19",
+    "alembic>=1.13",
+    "python-jose[cryptography]>=3.3",
+    "passlib[bcrypt]>=1.7",
+    "python-multipart>=0.0.6",
+    "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "httpx>=0.27",
+    "pytest-asyncio>=0.23",
+]
+prod = [
+    "asyncpg>=0.29",
+    "psycopg2-binary>=2.9",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

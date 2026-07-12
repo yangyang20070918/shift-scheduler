@@ -1,0 +1,88 @@
+{
+  "start_date": "2026-07-01",
+  "num_days": 31,
+  "patterns": [
+    {"id": "A", "name": "Day Shift A", "start_time": "08:00", "end_time": "16:00", "work_hours": 7.5, "color_code": "#4CAF50"},
+    {"id": "B", "name": "Day Shift B", "start_time": "09:00", "end_time": "17:00", "work_hours": 7.5, "color_code": "#2196F3"},
+    {"id": "C", "name": "Late Shift", "start_time": "14:00", "end_time": "22:00", "work_hours": 7.5, "color_code": "#FF9800"},
+    {"id": "N", "name": "Night Shift", "start_time": "22:00", "end_time": "06:00", "work_hours": 7.5, "color_code": "#9C27B0"},
+    {"id": "S", "name": "Short Shift", "start_time": "10:00", "end_time": "15:00", "work_hours": 4.5, "color_code": "#607D8B"}
+  ],
+  "members": [
+    {"id": "m01", "name": "Tanaka"},
+    {"id": "m02", "name": "Suzuki"},
+    {"id": "m03", "name": "Sato"},
+    {"id": "m04", "name": "Takahashi"},
+    {"id": "m05", "name": "Ito"},
+    {"id": "m06", "name": "Watanabe"},
+    {"id": "m07", "name": "Yamamoto"},
+    {"id": "m08", "name": "Nakamura"},
+    {"id": "m09", "name": "Kobayashi"},
+    {"id": "m10", "name": "Kato"}
+  ],
+  "person_constraints": [
+    {"member_id": "m01", "period_work_days_min": 20, "period_work_days_max": 23, "max_consecutive_work_days": 5, "max_consecutive_rest_days": 3},
+    {"member_id": "m02", "period_work_days_min": 20, "period_work_days_max": 23, "max_consecutive_work_days": 5, "max_consecutive_rest_days": 3},
+    {"member_id": "m03", "period_work_days_min": 20, "period_work_days_max": 23, "max_consecutive_work_days": 5, "max_consecutive_rest_days": 3},
+    {"member_id": "m04", "period_work_days_min": 20, "period_work_days_max": 23, "max_consecutive_work_days": 5, "max_consecutive_rest_days": 3},
+    {"member_id": "m05", "period_work_days_min": 20, "period_work_days_max": 23, "max_consecutive_work_days": 5, "max_consecutive_rest_days": 3},
+    {"member_id": "m06", "period_work_days_min": 20, "period_work_days_max": 23, "max_consecutive_work_days": 5, "max_consecutive_rest_days": 3},
+    {"member_id": "m07", "period_work_days_min": 20, "period_work_days_max": 23, "max_consecutive_work_days": 5, "max_consecutive_rest_days": 3},
+    {"member_id": "m08", "period_work_days_min": 20, "period_work_days_max": 23, "max_consecutive_work_days": 5, "max_consecutive_rest_days": 3},
+    {"member_id": "m09", "period_work_days_min": 20, "period_work_days_max": 23, "max_consecutive_work_days": 5, "max_consecutive_rest_days": 3},
+    {"member_id": "m10", "period_work_days_min": 20, "period_work_days_max": 23, "max_consecutive_work_days": 5, "max_consecutive_rest_days": 3}
+  ],
+  "forbidden_transitions": [
+    {"from_pattern_id": "N", "to_pattern_id": "A"},
+    {"from_pattern_id": "N", "to_pattern_id": "B"}
+  ],
+  "pattern_chains": [],
+  "groups": [
+    {"id": "g_senior", "name": "Senior Staff", "member_ids": ["m01", "m02", "m03", "m04"]}
+  ],
+  "fixed_assignments": [
+    {"member_id": "m01", "date": "2026-07-05", "type": "rest"},
+    {"member_id": "m02", "date": "2026-07-12", "type": "rest"}
+  ],
+  "daily_demands": [
+    {"date": "2026-07-01", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-02", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-03", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-04", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-05", "min_total": 3, "max_total": 6},
+    {"date": "2026-07-06", "min_total": 3, "max_total": 6},
+    {"date": "2026-07-07", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-08", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-09", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-10", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-11", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-12", "min_total": 3, "max_total": 6},
+    {"date": "2026-07-13", "min_total": 3, "max_total": 6},
+    {"date": "2026-07-14", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-15", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-16", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-17", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-18", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-19", "min_total": 3, "max_total": 6},
+    {"date": "2026-07-20", "min_total": 3, "max_total": 6},
+    {"date": "2026-07-21", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-22", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-23", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-24", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-25", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-26", "min_total": 3, "max_total": 6},
+    {"date": "2026-07-27", "min_total": 3, "max_total": 6},
+    {"date": "2026-07-28", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-29", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-30", "min_total": 4, "max_total": 7},
+    {"date": "2026-07-31", "min_total": 4, "max_total": 7}
+  ],
+  "group_demands": [],
+  "carry_over": [],
+  "config": {
+    "time_limit_seconds": 30,
+    "week_start_day": 1,
+    "stage1_ratio": 0.4,
+    "stage2_ratio": 0.4
+  }
+}

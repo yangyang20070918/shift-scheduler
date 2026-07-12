@@ -1,0 +1,216 @@
+{
+  "$defs": {
+    "Assignment": {
+      "properties": {
+        "member_id": {
+          "title": "Member Id",
+          "type": "string"
+        },
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "pattern_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pattern Id"
+        },
+        "is_rest": {
+          "default": false,
+          "title": "Is Rest",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "member_id",
+        "date"
+      ],
+      "title": "Assignment",
+      "type": "object"
+    },
+    "ScoreBreakdown": {
+      "properties": {
+        "personal": {
+          "default": 100.0,
+          "title": "Personal",
+          "type": "number"
+        },
+        "group": {
+          "default": 100.0,
+          "title": "Group",
+          "type": "number"
+        },
+        "demand": {
+          "default": 100.0,
+          "title": "Demand",
+          "type": "number"
+        },
+        "balance": {
+          "default": 100.0,
+          "title": "Balance",
+          "type": "number"
+        }
+      },
+      "title": "ScoreBreakdown",
+      "type": "object"
+    },
+    "SolverWarning": {
+      "properties": {
+        "warning_type": {
+          "title": "Warning Type",
+          "type": "string"
+        },
+        "severity": {
+          "title": "Severity",
+          "type": "string"
+        },
+        "target": {
+          "default": "",
+          "title": "Target",
+          "type": "string"
+        },
+        "message": {
+          "default": "",
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "warning_type",
+        "severity"
+      ],
+      "title": "SolverWarning",
+      "type": "object"
+    },
+    "Violation": {
+      "properties": {
+        "priority": {
+          "title": "Priority",
+          "type": "string"
+        },
+        "constraint_group": {
+          "title": "Constraint Group",
+          "type": "string"
+        },
+        "constraint_type": {
+          "title": "Constraint Type",
+          "type": "string"
+        },
+        "target_member_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Member Id"
+        },
+        "target_date": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Date"
+        },
+        "setting_value": {
+          "default": "",
+          "title": "Setting Value",
+          "type": "string"
+        },
+        "actual_value": {
+          "default": "",
+          "title": "Actual Value",
+          "type": "string"
+        },
+        "contributing_factors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Contributing Factors",
+          "type": "array"
+        },
+        "suggestions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Suggestions",
+          "type": "array"
+        }
+      },
+      "required": [
+        "priority",
+        "constraint_group",
+        "constraint_type"
+      ],
+      "title": "Violation",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "status": {
+      "title": "Status",
+      "type": "string"
+    },
+    "solve_time_seconds": {
+      "default": 0.0,
+      "title": "Solve Time Seconds",
+      "type": "number"
+    },
+    "total_penalty": {
+      "default": 0,
+      "title": "Total Penalty",
+      "type": "integer"
+    },
+    "health_score": {
+      "default": 100.0,
+      "title": "Health Score",
+      "type": "number"
+    },
+    "score_breakdown": {
+      "$ref": "#/$defs/ScoreBreakdown"
+    },
+    "assignments": {
+      "items": {
+        "$ref": "#/$defs/Assignment"
+      },
+      "title": "Assignments",
+      "type": "array"
+    },
+    "violations": {
+      "items": {
+        "$ref": "#/$defs/Violation"
+      },
+      "title": "Violations",
+      "type": "array"
+    },
+    "warnings": {
+      "items": {
+        "$ref": "#/$defs/SolverWarning"
+      },
+      "title": "Warnings",
+      "type": "array"
+    }
+  },
+  "required": [
+    "status"
+  ],
+  "title": "SolverOutput",
+  "type": "object"
+}
