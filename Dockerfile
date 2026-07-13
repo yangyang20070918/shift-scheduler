@@ -10,11 +10,13 @@ RUN npm run build
 FROM python:3.12-slim
 WORKDIR /app
 
-COPY pyproject.toml ./
-RUN pip install --no-cache-dir ".[prod]"
+RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*
 
+COPY pyproject.toml ./
 COPY api/ ./api/
 COPY solver_core/ ./solver_core/
+
+RUN pip install --no-cache-dir ".[prod]"
 
 COPY --from=frontend /app/web/dist ./web/dist
 
