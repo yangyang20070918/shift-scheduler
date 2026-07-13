@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Card, Tag, Button, Calendar, Badge, Modal, Spin, Typography, message, List, Divider, Empty } from 'antd'
+import { Card, Tag, Button, Calendar, Badge, Modal, Spin, Typography, message, List, Empty } from 'antd'
 import { CheckCircleOutlined, CalendarOutlined, ScheduleOutlined } from '@ant-design/icons'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
@@ -24,7 +24,7 @@ export default function PersonalPage() {
   const [saving, setSaving] = useState(false)
   const [mySchedule, setMySchedule] = useState<MySchedule | null>(null)
   const [scheduleModalOpen, setScheduleModalOpen] = useState(false)
-  const [viewScheduleId, setViewScheduleId] = useState<string | null>(null)
+  const [, setViewScheduleId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!token) return

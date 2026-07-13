@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, Button, InputNumber, Form, Table, Select, Space, Tag, message, Popconfirm, DatePicker, Spin, Row, Col, Statistic, Progress, Modal, Typography, Badge } from 'antd'
 import { PlayCircleOutlined, ArrowLeftOutlined, DeleteOutlined, LoadingOutlined, ThunderboltOutlined, SendOutlined, LockOutlined, CopyOutlined, LinkOutlined } from '@ant-design/icons'
-import dayjs from 'dayjs'
 import { getScheduleResult, generateSchedule, compareScenarios, type ScheduleResult, type ScenarioSummary } from '../../api/schedules'
 import { listDemands, batchSetDemands, clearDemands, type DailyDemand } from '../../api/demands'
 import { listFixedAssignments, createFixedAssignment, deleteFixedAssignment, type FixedAssignment } from '../../api/fixed-assignments'
@@ -201,8 +200,6 @@ export default function ScheduleDetailPage() {
   if (loading || !schedule) return <Spin size="large" style={{ display: 'block', margin: '100px auto' }} />
 
   const isRunning = schedule.status === 'running'
-  const isEditable = !isRunning
-
   const faColumns = [
     { title: 'メンバー', dataIndex: 'member_id', key: 'member', render: (id: string) => getMemberName(id) },
     { title: '日付', dataIndex: 'date', key: 'date' },

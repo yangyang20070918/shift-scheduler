@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Table, Button, Modal, Form, Input, InputNumber, DatePicker, Tag, Space, message } from 'antd'
 import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import dayjs from 'dayjs'
 import { listSchedules, createSchedule, type Schedule } from '../../api/schedules'
 
 const STATUS_COLORS: Record<string, string> = {
