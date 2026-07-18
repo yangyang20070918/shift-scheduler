@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 from ..models.constraint import PersonConstraint
-from ..models.demand import DailyDemand, GroupDemand
+from ..models.demand import DailyDemand, GroupDemand, PatternDemand
 from ..models.group import Group, GroupMember
 from ..models.member import Member
 from ..models.pattern import ForbiddenTransition, PatternChain, ShiftPattern
@@ -19,6 +19,7 @@ _TYPE_MAP = {
     "work": "NORMAL", "rest": "REST", "leave": "LEAVE",
     "training": "TRAINING", "meeting": "MEETING",
     "oncall": "ONCALL", "holiday": "HOLIDAY", "companion": "COMPANION",
+    "travel": "TRAVEL",
 }
 
 
@@ -53,6 +54,11 @@ async def build_solver_input(db: AsyncSession, schedule: Schedule) -> dict:
         select(DailyDemand).where(DailyDemand.schedule_id == schedule.id)
     )
     daily_demands = dd_q.scalars().all()
+
+    pd_q = await db.execute(
+        select(PatternDemand).where(PatternDemand.schedule_id == schedule.id)
+    )
+    pattern_demands = pd_q.scalars().all()
 
     gd_q = await db.execute(
         select(GroupDemand).where(GroupDemand.schedule_id == schedule.id)
@@ -121,6 +127,10 @@ async def build_solver_input(db: AsyncSession, schedule: Schedule) -> dict:
         "daily_demands": [
             {"date": str(dd.date), "min_total": dd.min_total, "max_total": dd.max_total}
             for dd in daily_demands
+        ],
+        "pattern_demands": [
+            {"date": str(pd.date), "pattern_id": pd.pattern_id, "min_count": pd.min_count}
+            for pd in pattern_demands
         ],
         "group_demands": [
             {

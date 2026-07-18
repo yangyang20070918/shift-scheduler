@@ -5,6 +5,6 @@ from .member import Member
 from .pattern import ShiftPattern, ForbiddenTransition, PatternChain
 from .group import Group, GroupMember
 from .constraint import PersonConstraint
-from .demand import DailyDemand, GroupDemand
+from .demand import DailyDemand, GroupDemand, PatternDemand
 from .schedule import Schedule, FixedAssignment
 from .rest_request import RestDayRequest

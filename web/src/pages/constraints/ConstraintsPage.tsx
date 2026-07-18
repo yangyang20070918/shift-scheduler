@@ -90,7 +90,7 @@ export default function ConstraintsPage() {
       render: (v: number | null) => v ?? '-',
     },
     {
-      title: '連続休息上限',
+      title: '連休日数上限',
       dataIndex: 'max_consecutive_rest_days',
       key: 'consec_rest',
       render: (v: number | null) => v ?? '-',
@@ -175,7 +175,7 @@ export default function ConstraintsPage() {
               <Form.Item name="max_consecutive_work_days" label="連続勤務上限" style={{ marginBottom: 0 }}>
                 <InputNumber min={1} max={31} />
               </Form.Item>
-              <Form.Item name="max_consecutive_rest_days" label="連続休息上限" style={{ marginBottom: 0 }}>
+              <Form.Item name="max_consecutive_rest_days" label="連休日数上限" style={{ marginBottom: 0 }}>
                 <InputNumber min={1} max={31} />
               </Form.Item>
             </Space>

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import uuid
+from datetime import timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -134,6 +136,38 @@ async def create_group_demand(
     )
 
 
+class GroupDemandUpdate(BaseModel):
+    min_count: int
+
+
+@router.put("/schedules/{schedule_id}/group-demands/{demand_id}", response_model=GroupDemandResponse)
+async def update_group_demand(
+    schedule_id: str,
+    demand_id: str,
+    body: GroupDemandUpdate,
+    tenant_id: str = Depends(get_tenant_id),
+    db: AsyncSession = Depends(get_db),
+):
+    await _get_schedule(schedule_id, tenant_id, db)
+    result = await db.execute(
+        select(GroupDemand).where(
+            GroupDemand.id == demand_id,
+            GroupDemand.schedule_id == schedule_id,
+            GroupDemand.tenant_id == tenant_id,
+        )
+    )
+    demand = result.scalar_one_or_none()
+    if demand is None:
+        raise HTTPException(status_code=404, detail="Group demand not found")
+    demand.min_count = body.min_count
+    await db.commit()
+    return GroupDemandResponse(
+        id=demand.id, schedule_id=demand.schedule_id,
+        date=demand.date, group_id=demand.group_id,
+        pattern_id=demand.pattern_id, min_count=demand.min_count,
+    )
+
+
 @router.delete("/schedules/{schedule_id}/group-demands/{demand_id}", status_code=204)
 async def delete_group_demand(
     schedule_id: str,
@@ -154,6 +188,103 @@ async def delete_group_demand(
         raise HTTPException(status_code=404, detail="Group demand not found")
     await db.delete(demand)
     await db.commit()
+
+
+class GroupDemandBatch(BaseModel):
+    group_id: str
+    pattern_id: str | None = None
+    min_count: int = 0
+
+
+@router.post("/schedules/{schedule_id}/group-demands/batch")
+async def batch_set_group_demands(
+    schedule_id: str,
+    body: GroupDemandBatch,
+    tenant_id: str = Depends(get_tenant_id),
+    db: AsyncSession = Depends(get_db),
+):
+    schedule = await _get_schedule(schedule_id, tenant_id, db)
+    conditions = [
+        GroupDemand.schedule_id == schedule_id,
+        GroupDemand.tenant_id == tenant_id,
+        GroupDemand.group_id == body.group_id,
+    ]
+    if body.pattern_id:
+        conditions.append(GroupDemand.pattern_id == body.pattern_id)
+    else:
+        conditions.append(GroupDemand.pattern_id.is_(None))
+    await db.execute(delete(GroupDemand).where(*conditions))
+    items = []
+    for i in range(schedule.num_days):
+        d = schedule.start_date + timedelta(days=i)
+        gd = GroupDemand(
+            id=str(uuid.uuid4()), tenant_id=tenant_id,
+            schedule_id=schedule_id, date=d,
+            group_id=body.group_id, pattern_id=body.pattern_id,
+            min_count=body.min_count,
+        )
+        db.add(gd)
+        items.append(gd)
+    await db.commit()
+    return [
+        GroupDemandResponse(
+            id=g.id, schedule_id=g.schedule_id,
+            date=g.date, group_id=g.group_id,
+            pattern_id=g.pattern_id, min_count=g.min_count,
+        )
+        for g in items
+    ]
+
+
+class GroupDemandWeekdayBatch(BaseModel):
+    group_id: str
+    pattern_id: str | None = None
+    weekday_settings: dict[int, dict]  # {0: {min_count: N}, ..., 6: ...}
+
+
+@router.post("/schedules/{schedule_id}/group-demands/batch-weekday")
+async def batch_set_group_demands_by_weekday(
+    schedule_id: str,
+    body: GroupDemandWeekdayBatch,
+    tenant_id: str = Depends(get_tenant_id),
+    db: AsyncSession = Depends(get_db),
+):
+    schedule = await _get_schedule(schedule_id, tenant_id, db)
+    conditions = [
+        GroupDemand.schedule_id == schedule_id,
+        GroupDemand.tenant_id == tenant_id,
+        GroupDemand.group_id == body.group_id,
+    ]
+    if body.pattern_id:
+        conditions.append(GroupDemand.pattern_id == body.pattern_id)
+    else:
+        conditions.append(GroupDemand.pattern_id.is_(None))
+    await db.execute(delete(GroupDemand).where(*conditions))
+    items = []
+    for i in range(schedule.num_days):
+        d = schedule.start_date + timedelta(days=i)
+        wd = d.weekday()
+        setting = body.weekday_settings.get(wd, body.weekday_settings.get(0, {}))
+        mc = setting.get("min_count", 0)
+        if mc <= 0:
+            continue
+        gd = GroupDemand(
+            id=str(uuid.uuid4()), tenant_id=tenant_id,
+            schedule_id=schedule_id, date=d,
+            group_id=body.group_id, pattern_id=body.pattern_id,
+            min_count=mc,
+        )
+        db.add(gd)
+        items.append(gd)
+    await db.commit()
+    return [
+        GroupDemandResponse(
+            id=g.id, schedule_id=g.schedule_id,
+            date=g.date, group_id=g.group_id,
+            pattern_id=g.pattern_id, min_count=g.min_count,
+        )
+        for g in items
+    ]
 
 
 @router.delete("/schedules/{schedule_id}/group-demands", status_code=204)

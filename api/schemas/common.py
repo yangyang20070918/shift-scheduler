@@ -100,7 +100,7 @@ class FixedAssignmentResponse(FixedAssignmentCreate):
 class GroupDemandCreate(BaseModel):
     date: date
     group_id: str
-    pattern_id: str
+    pattern_id: Optional[str] = None
     min_count: int = 0
 
 
@@ -133,6 +133,10 @@ class ScheduleCreate(BaseModel):
     rest_request_max_days: int = 3
 
 
+class ScheduleUpdate(BaseModel):
+    name: str
+
+
 class ScheduleResponse(BaseModel):
     id: str
     name: str
@@ -150,6 +154,9 @@ class ScheduleResponse(BaseModel):
 
 class ScheduleResultResponse(BaseModel):
     id: str
+    name: str = ""
+    start_date: str = ""
+    num_days: int = 0
     status: str
     result_status: Optional[str] = None
     solve_time_seconds: Optional[float] = None

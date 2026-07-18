@@ -200,6 +200,9 @@ class ViolationAnalyzer:
                         streak = 0
 
     def _check_group_demand(self, ctx, schedule, violations):
+        from .models import PatternType
+        rest_types = {PatternType.REST, PatternType.HOLIDAY, PatternType.LEAVE, PatternType.TRAVEL}
+
         for gd in ctx.input.group_demands:
             if gd.date not in ctx.day_dates:
                 continue
@@ -210,15 +213,36 @@ class ViolationAnalyzer:
             for m in group_members:
                 mid = ctx.input.members[m].id
                 a = schedule[mid][d]
-                if a and not a.is_rest and a.pattern_id == gd.pattern_id:
-                    count += 1
+                if a and not a.is_rest:
+                    if gd.pattern_id is None:
+                        if a.pattern_id and a.pattern_id in ctx._pattern_id_to_idx:
+                            k = ctx.pattern_idx(a.pattern_id)
+                            if ctx.input.patterns[k].type not in rest_types:
+                                count += 1
+                        else:
+                            count += 1
+                    elif a.pattern_id == gd.pattern_id:
+                        count += 1
 
             if count < gd.min_count:
+                group_name = gd.group_id
+                for g in ctx.input.groups:
+                    if g.id == gd.group_id:
+                        group_name = g.name
+                        break
+                pattern_label = "全パターン"
+                if gd.pattern_id:
+                    for p in ctx.input.patterns:
+                        if p.id == gd.pattern_id:
+                            pattern_label = p.name
+                            break
+                    else:
+                        pattern_label = gd.pattern_id
                 violations.append(Violation(
                     priority="P8", constraint_group="group",
                     constraint_type="group_demand_min",
                     target_date=gd.date,
-                    setting_value=f"{gd.group_id}:{gd.pattern_id}>={gd.min_count}",
+                    setting_value=f"{group_name}({pattern_label})>={gd.min_count}",
                     actual_value=str(count),
                 ))
 

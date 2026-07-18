@@ -7,6 +7,7 @@ import AppLayout from './components/AppLayout'
 import LoginPage from './pages/auth/LoginPage'
 import MembersPage from './pages/members/MembersPage'
 import PatternsPage from './pages/patterns/PatternsPage'
+import PatternRulesPage from './pages/patterns/PatternRulesPage'
 import SchedulesPage from './pages/schedules/SchedulesPage'
 import ScheduleResultPage from './pages/schedules/ScheduleResultPage'
 import ScheduleDetailPage from './pages/schedules/ScheduleDetailPage'
@@ -71,6 +72,7 @@ export default function App() {
                 <Route index element={<Navigate to="/schedules" replace />} />
                 <Route path="members" element={<MembersPage />} />
                 <Route path="patterns" element={<PatternsPage />} />
+                <Route path="pattern-rules" element={<PatternRulesPage />} />
                 <Route path="schedules" element={<SchedulesPage />} />
                 <Route path="schedules/:id" element={<ScheduleDetailPage />} />
                 <Route path="schedules/:id/result" element={<ScheduleResultPage />} />

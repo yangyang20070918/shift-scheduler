@@ -16,14 +16,14 @@ export interface GroupDemand {
   schedule_id: string
   date: string
   group_id: string
-  pattern_id: string
+  pattern_id: string | null
   min_count: number
 }
 
 export interface GroupDemandInput {
   date: string
   group_id: string
-  pattern_id: string
+  pattern_id: string | null
   min_count: number
 }
 
@@ -56,10 +56,35 @@ export async function createGroupDemand(scheduleId: string, data: GroupDemandInp
   return res.data
 }
 
+export async function updateGroupDemand(
+  scheduleId: string,
+  demandId: string,
+  data: { min_count: number },
+): Promise<GroupDemand> {
+  const res = await client.put(`/schedules/${scheduleId}/group-demands/${demandId}`, data)
+  return res.data
+}
+
 export async function deleteGroupDemand(scheduleId: string, demandId: string): Promise<void> {
   await client.delete(`/schedules/${scheduleId}/group-demands/${demandId}`)
 }
 
+export async function batchSetGroupDemand(
+  scheduleId: string,
+  data: { group_id: string; pattern_id?: string | null; min_count: number },
+): Promise<GroupDemand[]> {
+  const res = await client.post(`/schedules/${scheduleId}/group-demands/batch`, data)
+  return res.data
+}
+
 export async function clearGroupDemands(scheduleId: string): Promise<void> {
   await client.delete(`/schedules/${scheduleId}/group-demands`)
+}
+
+export async function batchSetGroupDemandByWeekday(
+  scheduleId: string,
+  data: { group_id: string; pattern_id?: string | null; weekday_settings: Record<number, { min_count: number }> },
+): Promise<GroupDemand[]> {
+  const res = await client.post(`/schedules/${scheduleId}/group-demands/batch-weekday`, data)
+  return res.data
 }

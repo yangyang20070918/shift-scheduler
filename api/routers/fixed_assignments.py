@@ -71,6 +71,37 @@ async def create_fixed_assignment(
     )
 
 
+@router.put("/{schedule_id}/fixed-assignments/{assignment_id}", response_model=FixedAssignmentResponse)
+async def update_fixed_assignment(
+    schedule_id: str,
+    assignment_id: str,
+    body: FixedAssignmentCreate,
+    tenant_id: str = Depends(get_tenant_id),
+    db: AsyncSession = Depends(get_db),
+):
+    await _get_schedule(schedule_id, tenant_id, db)
+    result = await db.execute(
+        select(FixedAssignment).where(
+            FixedAssignment.id == assignment_id,
+            FixedAssignment.schedule_id == schedule_id,
+            FixedAssignment.tenant_id == tenant_id,
+        )
+    )
+    fa = result.scalar_one_or_none()
+    if fa is None:
+        raise HTTPException(status_code=404, detail="Fixed assignment not found")
+    fa.member_id = body.member_id
+    fa.date = body.date
+    fa.type = body.type
+    fa.pattern_id = body.pattern_id
+    await db.commit()
+    return FixedAssignmentResponse(
+        id=fa.id, schedule_id=fa.schedule_id,
+        member_id=fa.member_id, date=fa.date,
+        type=fa.type, pattern_id=fa.pattern_id,
+    )
+
+
 @router.delete("/{schedule_id}/fixed-assignments/{assignment_id}", status_code=204)
 async def delete_fixed_assignment(
     schedule_id: str,

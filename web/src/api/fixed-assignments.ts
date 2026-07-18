@@ -26,6 +26,11 @@ export async function createFixedAssignment(scheduleId: string, data: FixedAssig
   return res.data
 }
 
+export async function updateFixedAssignment(scheduleId: string, assignmentId: string, data: FixedAssignmentInput): Promise<FixedAssignment> {
+  const res = await client.put(`/schedules/${scheduleId}/fixed-assignments/${assignmentId}`, data)
+  return res.data
+}
+
 export async function deleteFixedAssignment(scheduleId: string, assignmentId: string): Promise<void> {
   await client.delete(`/schedules/${scheduleId}/fixed-assignments/${assignmentId}`)
 }

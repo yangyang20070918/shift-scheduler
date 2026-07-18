@@ -9,7 +9,7 @@
 
 | 项目 | 状态 |
 |------|------|
-| **当前阶段** | Phase 8 进行中（手動テスト待ち） |
+| **当前阶段** | Phase 10 完成（設定テスト待ち） |
 | **Phase 1** | ✅ 完成（2026-07-11） |
 | **Phase 2** | ✅ 完成（2026-07-12） |
 | **Phase 3** | ✅ 完成（2026-07-12） |
@@ -17,22 +17,25 @@
 | **Phase 5** | ✅ 完成（2026-07-12） |
 | **Phase 6** | ✅ 完成（2026-07-12） |
 | **Phase 7** | ✅ 完成（2026-07-13） |
-| **Phase 8** | 🔧 進行中（手動テスト待ち） |
+| **Phase 8** | ✅ 完成（2026-07-14） |
+| **Phase 9** | ✅ 完成（2026-07-17） |
+| **Phase 10** | ✅ 完成（2026-07-17） |
 
 **下次继续开发时应该做的事：**
 
 1. **启动后端：** `cd shift_app && uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload`
 2. **启动前端：** `cd shift_app/web && npm run dev`（端口5173，自动代理 /api → localhost:8000）
-3. **开始 Phase 8：** 测试与上线
+3. **开始测试：** 用户手动测试各设定功能（勤務ルール、パターン別需要等），测试完后测试排班结果
 
 **已完成的全部页面（日本語UI）：**
 - ✅ Login/Register（JWT 認証 + 自動リダイレクト）
-- ✅ Pattern 管理（一覧 + 追加 + 削除、色/タイプ/時間/工時表示）
+- ✅ Pattern 管理（一覧 + 追加/編集/削除、色/タイプ/時間/工時表示、3種: 勤務/休日/出張）
+- ✅ 勤務ルール（連続勤務禁止マトリクス + パターンチェーン定義）
 - ✅ Member 管理（一覧 + 追加/編集/削除、対応可能パターン多選択）
 - ✅ Group 管理（一覧 + 追加/編集/削除、メンバー多選択）
 - ✅ PersonConstraint 管理（勤務日数/時間/連続上限 CRUD）
 - ✅ Schedule 一覧（新規作成 + 状態更新 + 設定/詳細リンク）
-- ✅ Schedule 設定（毎日需要一括 + 固定割当 + グループ需要 + 生成 + 三方案比較）
+- ✅ Schedule 設定（毎日需要一括 + パターン別需要 + 固定割当 + グループ需要一括 + 生成 + 三方案比較）
 - ✅ Schedule 結果（統計カード + スコア明細 + 排班表 + 違反レポート + 警告一覧）
 - ✅ サイドバー（メンバー/パターン/グループ/個人制約/スケジュール）+ ユーザー情報 + ログアウト
 - ✅ 休み希望受付管理（受付開始/メンバー別ステータス/個人リンク/受付締切）
@@ -610,10 +613,123 @@
   - 排班生成 + 結果表示 + Excel出力 + 三方案比較
   - レスポンシブ、マルチテナント、エラーハンドリング
 
-### Step 5: 部署 🔲
+### Step 5: 部署 ✅
 
-- [ ] 部署环境搭建（云服务选定、CI/CD）
-- [ ] 操作手册
+- [x] Railway + GitHub Actions CI/CD 構築完了
+- [x] PostgreSQL 接続、Docker マルチステージビルド
+- [x] 本番URL: shift-scheduler-production-e3c5.up.railway.app
+
+---
+
+## Phase 9：機能完善 ✅ 完成
+
+**目標：** テスト後の追加開発 — 不足機能の実装  
+**完成日期：** 2026-07-17  
+**テスト結果：** 58個テスト全パス、TypeScript 0 errors
+
+### Step 1: plan.md 更新 ✅
+
+- [x] Pattern Type を8種類から3種類（勤務/休日/出張）に変更
+- [x] 出張の業務ルール（需要にカウントしない、個人労働時間にはカウント）を記載
+- [x] Phase 9 セクション追加（P1-A/P1-B API+UI、パターン別需要、グループ需要一括）
+
+### Step 2: 出張（TRAVEL）タイプ対応 ✅
+
+- [x] `solver_core/models.py` — PatternType に TRAVEL 追加
+- [x] `api/services/scheduler.py` — _TYPE_MAP に travel→TRAVEL 追加
+- [x] `solver_core/constraints/p9_daily_demand.py` — TRAVEL パターンを需要人数から除外
+- [x] `solver_core/constraints/p8_group_demand.py` — TRAVEL パターンをグループ需要から除外
+- [x] P2〜P7（個人制約）では TRAVEL を出勤日数・労働時間として計算（既存ロジックのまま）
+
+### Step 3: 連続勤務禁止（P1-A）API + UI ✅
+
+- [x] `api/routers/pattern_rules.py` — ForbiddenTransition CRUD API
+  - GET/POST/DELETE /api/forbidden-transitions
+  - 重複禁止ペアの409チェック
+- [x] `web/src/api/pattern-rules.ts` — API クライアント
+- [x] `web/src/pages/patterns/PatternRulesPage.tsx` — マトリクス形式UI
+  - 勤務パターン × 勤務パターンのチェックボックスマトリクス
+  - チェック = 禁止ペア設定
+
+### Step 4: パターンチェーン（P1-B）API + UI ✅
+
+- [x] `api/routers/pattern_rules.py` — PatternChain CRUD API
+  - GET/POST/PUT/DELETE /api/pattern-chains
+  - 連鎖ノード定義（day_offset, candidates, is_rest）
+- [x] `web/src/pages/patterns/PatternRulesPage.tsx` — チェーン定義UI
+  - トリガーパターン選択 + 後続シーケンス動的追加
+  - 各ノードで「休日」or「パターン」選択
+  - 連鎖表示（タグ+矢印でビジュアル表現）
+
+### Step 5: パターン別毎日需要 ✅
+
+- [x] `api/models/demand.py` — PatternDemand モデル新規作成
+- [x] `solver_core/models.py` — PatternDemand モデル + SolverInput に追加
+- [x] `api/routers/demands.py` — PatternDemand API 追加
+  - GET /schedules/{id}/pattern-demands
+  - POST /schedules/{id}/pattern-demands/batch
+  - DELETE /schedules/{id}/pattern-demands
+- [x] `api/services/scheduler.py` — pattern_demands を SolverInput に含める
+- [x] `solver_core/constraints/p9_daily_demand.py` — パターン別需要制約の処理追加
+- [x] `web/src/api/demands.ts` — PatternDemand API クライアント
+- [x] `web/src/pages/schedules/ScheduleDetailPage.tsx` — 「パターン別需要」セクション追加
+  - パターン選択 + 最小人数 → 全日程一括設定
+
+### Step 6: グループ需要一括設定 ✅
+
+- [x] `api/routers/groups.py` — POST /schedules/{id}/group-demands/batch エンドポイント追加
+  - グループ + パターン + 最小人数 → 全日程に一括適用
+- [x] `web/src/api/groups.ts` — batchSetGroupDemand API 追加
+- [x] `web/src/pages/schedules/ScheduleDetailPage.tsx` — グループ需要UI改善
+  - 日付個別指定を削除、一括設定ボタンに変更
+  - クリアボタン追加
+
+### Step 7: ナビゲーション更新 ✅
+
+- [x] `web/src/App.tsx` — /pattern-rules ルート追加
+- [x] `web/src/components/AppLayout.tsx` — サイドバーに「勤務ルール」メニュー追加（SwapOutlined アイコン）
+- [x] `api/main.py` — pattern_rules ルーター登録
+
+---
+
+## Phase 10：Excel導出導入機能完善 ✅ 完成
+
+**目標：** パターンExcel導出導入 + 排班結果Excel再導入  
+**完成日期：** 2026-07-17  
+**テスト結果：** 62個テスト全パス、TypeScript 0 errors
+
+### Step 1: 出勤パターンExcel導出 ✅
+
+- [x] `api/services/export_excel.py` — `generate_pattern_excel()` 追加
+  - パターン一覧をExcel出力（名前、タイプ、開始/終了時刻、休憩時間、実労働時間、色コード）
+- [x] `api/routers/patterns.py` — GET /api/patterns/export/excel エンドポイント追加
+- [x] `web/src/api/patterns.ts` — `exportPatternsExcel()` 追加
+- [x] `web/src/pages/patterns/PatternsPage.tsx` — 「Excel出力」ボタン追加
+
+### Step 2: 出勤パターンExcelインポート ✅
+
+- [x] `api/services/import_excel.py` — `parse_pattern_excel()` 追加
+  - Excel読込: 名前、タイプ（勤務/休日/出張）、時刻、労働時間、色コード
+- [x] `api/routers/patterns.py` — POST /api/patterns/import/preview, /import/execute エンドポイント追加
+  - プレビュー: 新規/更新を判定、警告表示
+  - 実行: 名前一致で更新、新規名で追加
+- [x] `web/src/api/patterns.ts` — `previewPatternImport()`, `executePatternImport()` 追加
+- [x] `web/src/pages/patterns/PatternsPage.tsx` — 「Excelインポート」ボタン + プレビューモーダル追加
+
+### Step 3: 排班結果Excel再導入 ✅
+
+- [x] `api/services/import_excel.py` — `parse_schedule_result_excel()` 追加
+  - 排班表シートの行列解析: メンバー名×日付→パターン名/休 の読取り
+- [x] `api/routers/schedules.py` — POST /schedules/{id}/import/preview, /import/execute エンドポイント追加
+  - プレビュー: 現在結果とのdiff検出（変更箇所を一覧表示）
+  - 実行: 変更をassignmentsに反映、scheduleステータス維持
+- [x] `web/src/api/schedules.ts` — `previewScheduleImport()`, `executeScheduleImport()` 追加
+- [x] `web/src/pages/schedules/ScheduleResultPage.tsx` — 「Excel取込」ボタン + diff確認モーダル追加
+  - 変更前後を赤/緑タグで表示、件数表示
+
+### Step 4: plan.md 更新 ✅
+
+- [x] `plan.md` — 12.3.1 セクション追加（パターンExcel導出導入仕様）
 
 ---
 
@@ -680,6 +796,7 @@ shift_app/
 │   │   ├── auth.py         ← register/login/me
 │   │   ├── members.py      ← CRUD + トークン管理
 │   │   ├── patterns.py     ← CRUD
+│   │   ├── pattern_rules.py ← ForbiddenTransition + PatternChain CRUD
 │   │   ├── schedules.py    ← CRUD + generate + compare
 │   │   ├── demands.py      ← DailyDemand CRUD + batch
 │   │   ├── constraints.py  ← PersonConstraint CRUD
@@ -701,10 +818,10 @@ shift_app/
 │   ├── vite.config.ts      ← API 代理配置
 │   └── src/
 │       ├── App.tsx          ← 路由 + AuthProvider
-│       ├── api/             ← axios API clients (auth, members, patterns, schedules, demands, constraints, fixed-assignments, groups, imports, rest-requests, personal)
+│       ├── api/             ← axios API clients (auth, members, patterns, pattern-rules, schedules, demands, constraints, fixed-assignments, groups, imports, rest-requests, personal)
 │       ├── store/auth.ts    ← AuthContext
 │       ├── components/      ← AppLayout（レスポンシブ対応）
-│       └── pages/           ← Login, Members(+インポート), Patterns, Constraints, Groups, Schedules, ScheduleDetail(+休み希望), ScheduleResult(+Excel出力), Personal(個人ページ)
+│       └── pages/           ← Login, Members(+インポート), Patterns, PatternRules(連続禁止+チェーン), Constraints, Groups, Schedules, ScheduleDetail(+休み希望+パターン需要), ScheduleResult(+Excel出力), Personal(個人ページ)
 ├── tests/
 │   ├── test_solver_basic.py    ← 8个 solver 端到端测试
 │   ├── test_explain_scenario.py ← 5个 explain+scenario 测试

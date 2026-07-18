@@ -8,6 +8,7 @@ import {
   SafetyOutlined,
   ApartmentOutlined,
   MenuOutlined,
+  SwapOutlined,
 } from '@ant-design/icons'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../store/auth'
@@ -22,7 +23,8 @@ export default function AppLayout() {
 
   const menuItems = [
     { key: '/members', icon: <TeamOutlined />, label: 'メンバー' },
-    { key: '/patterns', icon: <AppstoreOutlined />, label: 'パターン' },
+    { key: '/patterns', icon: <AppstoreOutlined />, label: '出勤パターン' },
+    { key: '/pattern-rules', icon: <SwapOutlined />, label: '勤務ルール' },
     { key: '/groups', icon: <ApartmentOutlined />, label: 'グループ' },
     { key: '/constraints', icon: <SafetyOutlined />, label: '個人制約' },
     { key: '/schedules', icon: <ScheduleOutlined />, label: 'スケジュール' },

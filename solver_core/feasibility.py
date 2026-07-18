@@ -43,19 +43,26 @@ class FeasibilityChecker:
                 continue
             if fa.type == "work" and fa.pattern_id:
                 if fa.pattern_id not in ctx._pattern_id_to_idx:
+                    member_name = fa.member_id
+                    for mb in ctx.input.members:
+                        if mb.id == fa.member_id:
+                            member_name = mb.name
+                            break
                     warnings.append(SolverWarning(
                         warning_type="pre_solve",
                         severity="warning",
                         target=fa.member_id,
-                        message=f"Fixed assignment references unknown pattern '{fa.pattern_id}'.",
+                        message=f"固定割当のパターン（ID: {fa.pattern_id[:8]}...）が存在しません（{member_name}）。",
                     ))
                 else:
                     m = ctx.member_idx(fa.member_id)
                     k = ctx.pattern_idx(fa.pattern_id)
                     if k not in ctx.all_patterns_for_member(m):
+                        member_name = ctx.input.members[m].name
+                        pattern_name = ctx.input.patterns[k].name
                         warnings.append(SolverWarning(
                             warning_type="pre_solve",
                             severity="warning",
                             target=fa.member_id,
-                            message=f"Fixed pattern '{fa.pattern_id}' not available for member '{fa.member_id}'.",
+                            message=f"固定割当のパターン「{pattern_name}」は{member_name}に使用可能なパターンに含まれていません。",
                         ))

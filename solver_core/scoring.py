@@ -16,8 +16,6 @@ CATEGORY_MAP = {
 def compute_health_score(output: SolverOutput, max_penalty: int = 1000) -> tuple[float, ScoreBreakdown]:
     if output.status == "infeasible":
         return 0.0, ScoreBreakdown(personal=0, group=0, demand=0, balance=0)
-    if output.total_penalty == 0:
-        return 100.0, ScoreBreakdown()
 
     category_penalties: dict[str, int] = {
         "personal": 0, "group": 0, "demand": 0, "balance": 0,
@@ -27,7 +25,8 @@ def compute_health_score(output: SolverOutput, max_penalty: int = 1000) -> tuple
         cat = CATEGORY_MAP.get(v.constraint_group, "personal")
         category_penalties[cat] += 1
 
-    overall = _penalty_to_score(output.total_penalty, max_penalty)
+    effective_penalty = max(output.total_penalty, sum(category_penalties.values()) * 10)
+    overall = _penalty_to_score(effective_penalty, max_penalty)
 
     breakdown = ScoreBreakdown(
         personal=_category_score(category_penalties["personal"], max_penalty // 4),

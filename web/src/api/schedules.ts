@@ -15,6 +15,9 @@ export interface Schedule {
 
 export interface ScheduleResult {
   id: string
+  name: string
+  start_date: string
+  num_days: number
   status: string
   result_status?: string
   solve_time_seconds?: number
@@ -71,6 +74,11 @@ export async function createSchedule(data: { name: string; start_date: string; n
   return res.data
 }
 
+export async function updateSchedule(id: string, data: { name: string }): Promise<Schedule> {
+  const res = await client.put(`/schedules/${id}`, data)
+  return res.data
+}
+
 export async function getScheduleResult(id: string): Promise<ScheduleResult> {
   const res = await client.get(`/schedules/${id}`)
   return res.data
@@ -89,6 +97,7 @@ export interface ScenarioSummary {
   violations_count: number
   score_breakdown: ScoreBreakdown
   solve_time_seconds: number
+  assignments?: Assignment[]
 }
 
 export async function compareScenarios(id: string): Promise<{ scenarios: ScenarioSummary[] }> {
@@ -108,4 +117,56 @@ export async function exportExcel(id: string): Promise<void> {
   link.click()
   link.remove()
   window.URL.revokeObjectURL(url)
+}
+
+export async function exportPdf(id: string): Promise<void> {
+  const res = await client.get(`/schedules/${id}/export/pdf`, { responseType: 'blob' })
+  const url = window.URL.createObjectURL(new Blob([res.data]))
+  const link = document.createElement('a')
+  link.href = url
+  const disposition = res.headers['content-disposition']
+  const filename = disposition?.match(/filename="(.+)"/)?.[1] || `schedule_${id}.pdf`
+  link.setAttribute('download', filename)
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}
+
+export interface ScheduleImportChange {
+  member_id: string
+  member_name: string
+  date: string
+  date_label: string
+  before: { pattern_name: string; is_rest: boolean }
+  after: { pattern_name: string; is_rest: boolean; pattern_id: string | null }
+}
+
+export interface ScheduleImportPreview {
+  changes: ScheduleImportChange[]
+  warnings: string[]
+  total_imported: number
+}
+
+export async function previewScheduleImport(id: string, file: File): Promise<ScheduleImportPreview> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await client.post(`/schedules/${id}/import/preview`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return res.data
+}
+
+export interface ScheduleImportResult {
+  applied: number
+  total_assignments: number
+}
+
+export async function executeScheduleImport(id: string, file: File): Promise<ScheduleImportResult> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await client.post(`/schedules/${id}/import/execute`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return res.data
 }

@@ -146,7 +146,7 @@ export default function MembersPage() {
             <Select
               mode="multiple"
               placeholder="パターンを選択"
-              options={patterns.map((p) => ({ label: p.name, value: p.id }))}
+              options={patterns.filter((p) => p.type === 'work').map((p) => ({ label: p.name, value: p.id }))}
             />
           </Form.Item>
         </Form>
@@ -201,7 +201,22 @@ export default function MembersPage() {
                 <List
                   size="small"
                   dataSource={importPreview.constraints}
-                  renderItem={(c) => <List.Item>{c.member_name}: {JSON.stringify(c)}</List.Item>}
+                  renderItem={(c) => {
+                    const parts: string[] = []
+                    if (c.weekly_work_days_min != null || c.weekly_work_days_max != null)
+                      parts.push(`週出勤: ${c.weekly_work_days_min ?? '-'}~${c.weekly_work_days_max ?? '-'}日`)
+                    if (c.period_work_days_min != null || c.period_work_days_max != null)
+                      parts.push(`期間出勤: ${c.period_work_days_min ?? '-'}~${c.period_work_days_max ?? '-'}日`)
+                    if (c.weekly_work_hours_min != null || c.weekly_work_hours_max != null)
+                      parts.push(`週労働: ${c.weekly_work_hours_min ?? '-'}~${c.weekly_work_hours_max ?? '-'}h`)
+                    if (c.period_work_hours_min != null || c.period_work_hours_max != null)
+                      parts.push(`期間労働: ${c.period_work_hours_min ?? '-'}~${c.period_work_hours_max ?? '-'}h`)
+                    if (c.max_consecutive_work_days != null)
+                      parts.push(`連続出勤上限: ${c.max_consecutive_work_days}日`)
+                    if (c.max_consecutive_rest_days != null)
+                      parts.push(`連休日数上限: ${c.max_consecutive_rest_days}日`)
+                    return <List.Item>{c.member_name}: {parts.join('、') || '設定なし'}</List.Item>
+                  }}
                 />
               </>
             )}

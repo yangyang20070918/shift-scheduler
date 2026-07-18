@@ -16,6 +16,7 @@ class PatternType(str, Enum):
     ONCALL = "ONCALL"
     HOLIDAY = "HOLIDAY"
     COMPANION = "COMPANION"
+    TRAVEL = "TRAVEL"
 
 
 class ShiftPattern(BaseModel):
@@ -87,10 +88,16 @@ class DailyDemand(BaseModel):
     max_total: int = 999
 
 
+class PatternDemand(BaseModel):
+    date: date
+    pattern_id: str
+    min_count: int = 0
+
+
 class GroupDemand(BaseModel):
     date: date
     group_id: str
-    pattern_id: str
+    pattern_id: Optional[str] = None
     min_count: int = 0
 
 
@@ -122,6 +129,7 @@ class SolverInput(BaseModel):
     pattern_chains: list[PatternChain] = Field(default_factory=list)
     fixed_assignments: list[FixedAssignment] = Field(default_factory=list)
     daily_demands: list[DailyDemand] = Field(default_factory=list)
+    pattern_demands: list[PatternDemand] = Field(default_factory=list)
     group_demands: list[GroupDemand] = Field(default_factory=list)
     carry_over: list[PeriodCarryOver] = Field(default_factory=list)
     config: SolverConfig = Field(default_factory=SolverConfig)

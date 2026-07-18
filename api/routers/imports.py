@@ -16,9 +16,44 @@ router = APIRouter(prefix="/api/import", tags=["import"])
 
 
 @router.get("/template")
-async def download_template():
+async def download_template(
+    tenant_id: str = Depends(get_tenant_id),
+    db: AsyncSession = Depends(get_db),
+):
+    from ..models.constraint import PersonConstraint as PC
+    members_q = await db.execute(select(Member).where(Member.tenant_id == tenant_id))
+    members = members_q.scalars().all()
+
+    patterns_q = await db.execute(select(ShiftPattern).where(ShiftPattern.tenant_id == tenant_id))
+    patterns_map = {p.id: p.name for p in patterns_q.scalars().all()}
+
+    constraints_q = await db.execute(select(PC).where(PC.tenant_id == tenant_id))
+    constraints_map = {c.member_id: c for c in constraints_q.scalars().all()}
+
+    existing_data = None
+    if members:
+        existing_data = {
+            "members": [
+                {"name": m.name, "pattern_names": [patterns_map.get(pid, pid) for pid in (m.available_pattern_ids or [])]}
+                for m in members
+            ],
+            "constraints": [
+                {"member_name": m.name, **(
+                    {f: getattr(constraints_map[m.id], f) for f in [
+                        "weekly_work_days_min", "weekly_work_days_max",
+                        "period_work_days_min", "period_work_days_max",
+                        "weekly_work_hours_min", "weekly_work_hours_max",
+                        "period_work_hours_min", "period_work_hours_max",
+                        "max_consecutive_work_days", "max_consecutive_rest_days",
+                    ] if getattr(constraints_map[m.id], f) is not None}
+                    if m.id in constraints_map else {}
+                )}
+                for m in members
+            ],
+        }
+
     from ..services.import_excel import generate_import_template
-    buf = generate_import_template()
+    buf = generate_import_template(existing_data=existing_data)
     return StreamingResponse(
         buf,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -126,7 +161,9 @@ async def execute_import(
             pc = PersonConstraint(id=str(uuid.uuid4()), tenant_id=tenant_id, member_id=member.id)
             db.add(pc)
         for field in ["weekly_work_days_min", "weekly_work_days_max", "period_work_days_min",
-                       "period_work_days_max", "max_consecutive_work_days", "max_consecutive_rest_days"]:
+                       "period_work_days_max", "weekly_work_hours_min", "weekly_work_hours_max",
+                       "period_work_hours_min", "period_work_hours_max",
+                       "max_consecutive_work_days", "max_consecutive_rest_days"]:
             if field in c_data:
                 setattr(pc, field, c_data[field])
 

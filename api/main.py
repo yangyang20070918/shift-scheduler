@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -12,7 +13,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from .config import CORS_ORIGINS
 from .database import engine
 from .models import Base
-from .routers import auth, constraints, demands, fixed_assignments, groups, imports, members, patterns, personal, rest_requests, schedules
+from .routers import auth, constraints, demands, fixed_assignments, groups, imports, members, pattern_rules, patterns, personal, rest_requests, schedules
+from .services.tasks import run_periodic_tasks
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "web" / "dist"
 
@@ -21,7 +23,9 @@ STATIC_DIR = Path(__file__).resolve().parent.parent / "web" / "dist"
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    task = asyncio.create_task(run_periodic_tasks())
     yield
+    task.cancel()
     await engine.dispose()
 
 
@@ -60,11 +64,30 @@ app.include_router(groups.router)
 app.include_router(imports.router)
 app.include_router(rest_requests.router)
 app.include_router(personal.router)
+app.include_router(pattern_rules.router)
 
 
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.post("/api/tasks/auto-close-rest-requests")
+async def trigger_auto_close():
+    from .database import async_session
+    from .services.tasks import auto_close_expired_rest_requests
+    async with async_session() as db:
+        result = await auto_close_expired_rest_requests(db)
+    return result
+
+
+@app.post("/api/tasks/cleanup-old-data")
+async def trigger_cleanup():
+    from .database import async_session
+    from .services.tasks import cleanup_old_schedule_data
+    async with async_session() as db:
+        result = await cleanup_old_schedule_data(db)
+    return result
 
 
 if STATIC_DIR.exists():

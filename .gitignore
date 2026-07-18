@@ -21,6 +21,9 @@ web/dist/
 *.swp
 *.swo
 
+# Personal plans
+aws_project_plan.md
+
 # OS
 .DS_Store
 Thumbs.db
