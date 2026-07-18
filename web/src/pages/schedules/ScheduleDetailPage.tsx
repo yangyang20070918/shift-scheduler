@@ -7,7 +7,7 @@ import { listDemands, batchSetDemands, batchSetDemandsByWeekday, clearDemands, l
 import { listFixedAssignments, createFixedAssignment, updateFixedAssignment, deleteFixedAssignment, type FixedAssignment } from '../../api/fixed-assignments'
 import { listMembers, type Member } from '../../api/members'
 import { listPatterns, type Pattern } from '../../api/patterns'
-import { listGroups, listGroupDemands, createGroupDemand, updateGroupDemand, deleteGroupDemand, batchSetGroupDemand, batchSetGroupDemandByWeekday, clearGroupDemands, type Group, type GroupDemand } from '../../api/groups'
+import { listGroups, listGroupDemands, updateGroupDemand, deleteGroupDemand, batchSetGroupDemand, batchSetGroupDemandByWeekday, clearGroupDemands, type Group, type GroupDemand } from '../../api/groups'
 import { listRestRequests, openRestRequests, closeRestRequests, getMemberToken, type RestDayRequest } from '../../api/rest-requests'
 
 export default function ScheduleDetailPage() {
@@ -194,19 +194,6 @@ export default function ScheduleDetailPage() {
   async function handleDeleteFA(assignmentId: string) {
     await deleteFixedAssignment(id!, assignmentId)
     message.success('削除しました')
-    load(false)
-  }
-
-  async function handleAddGD() {
-    const values = await gdForm.validateFields()
-    await createGroupDemand(id!, {
-      date: values.date.format('YYYY-MM-DD'),
-      group_id: values.group_id,
-      pattern_id: values.pattern_id,
-      min_count: values.min_count,
-    })
-    message.success('グループ需要を追加しました')
-    gdForm.resetFields()
     load(false)
   }
 
