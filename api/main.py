@@ -13,7 +13,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from .config import CORS_ORIGINS
 from .database import engine
 from .models import Base
-from .routers import auth, constraints, demands, fixed_assignments, groups, imports, members, pattern_rules, patterns, personal, rest_requests, schedules
+from .routers import audit_logs, auth, constraints, demands, fixed_assignments, groups, imports, members, pattern_rules, patterns, personal, rest_requests, schedules
 from .services.tasks import run_periodic_tasks
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "web" / "dist"
@@ -65,6 +65,7 @@ app.include_router(imports.router)
 app.include_router(rest_requests.router)
 app.include_router(personal.router)
 app.include_router(pattern_rules.router)
+app.include_router(audit_logs.router)
 
 
 @app.get("/api/health")

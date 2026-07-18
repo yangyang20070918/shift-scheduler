@@ -3,13 +3,15 @@ from __future__ import annotations
 import uuid
 from datetime import date
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, Request, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import async_session, get_db
-from ..deps import get_tenant_id
+from ..deps import get_current_user, get_tenant_id
+from ..models.user import User
+from ..services.audit import record_audit
 from ..models.demand import DailyDemand, GroupDemand, PatternDemand
 from ..models.group import Group, GroupMember
 from ..models.member import Member
@@ -46,12 +48,13 @@ async def list_schedules(
 @router.post("", response_model=ScheduleResponse, status_code=201)
 async def create_schedule(
     body: ScheduleCreate,
-    tenant_id: str = Depends(get_tenant_id),
+    request: Request,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     schedule = Schedule(
         id=str(uuid.uuid4()),
-        tenant_id=tenant_id,
+        tenant_id=user.tenant_id,
         name=body.name,
         start_date=body.start_date,
         num_days=body.num_days,
@@ -61,6 +64,9 @@ async def create_schedule(
     )
     db.add(schedule)
     await db.commit()
+    await record_audit(db, tenant_id=user.tenant_id, action="CREATE", resource_type="schedule",
+                       user_id=user.id, user_email=user.email, resource_id=schedule.id,
+                       detail={"name": body.name, "num_days": body.num_days}, request=request)
     return ScheduleResponse(
         id=schedule.id, name=schedule.name, start_date=str(schedule.start_date),
         num_days=schedule.num_days, status=schedule.status,
@@ -73,15 +79,20 @@ async def create_schedule(
 async def update_schedule(
     schedule_id: str,
     body: ScheduleUpdate,
-    tenant_id: str = Depends(get_tenant_id),
+    request: Request,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Schedule).where(Schedule.id == schedule_id, Schedule.tenant_id == tenant_id))
+    result = await db.execute(select(Schedule).where(Schedule.id == schedule_id, Schedule.tenant_id == user.tenant_id))
     schedule = result.scalar_one_or_none()
     if schedule is None:
         raise HTTPException(status_code=404, detail="Schedule not found")
+    old_name = schedule.name
     schedule.name = body.name
     await db.commit()
+    await record_audit(db, tenant_id=user.tenant_id, action="UPDATE", resource_type="schedule",
+                       user_id=user.id, user_email=user.email, resource_id=schedule_id,
+                       detail={"old_name": old_name, "new_name": body.name}, request=request)
     return ScheduleResponse(
         id=schedule.id, name=schedule.name, start_date=str(schedule.start_date),
         num_days=schedule.num_days, status=schedule.status,
@@ -98,11 +109,12 @@ async def update_schedule(
 @router.post("/{schedule_id}/generate", response_model=ScheduleResponse)
 async def generate_schedule(
     schedule_id: str,
+    request: Request,
     background_tasks: BackgroundTasks,
-    tenant_id: str = Depends(get_tenant_id),
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(select(Schedule).where(Schedule.id == schedule_id, Schedule.tenant_id == tenant_id))
+    result = await db.execute(select(Schedule).where(Schedule.id == schedule_id, Schedule.tenant_id == user.tenant_id))
     schedule = result.scalar_one_or_none()
     if schedule is None:
         raise HTTPException(status_code=404, detail="Schedule not found")
@@ -112,6 +124,9 @@ async def generate_schedule(
 
     schedule.status = "running"
     await db.commit()
+    await record_audit(db, tenant_id=user.tenant_id, action="GENERATE", resource_type="schedule",
+                       user_id=user.id, user_email=user.email, resource_id=schedule_id,
+                       detail={"name": schedule.name}, request=request)
 
     async def _run():
         from ..services.scheduler import run_solve
@@ -173,10 +188,11 @@ async def _load_export_data(schedule_id: str, tenant_id: str, db: AsyncSession):
 @router.get("/{schedule_id}/export/excel")
 async def export_excel(
     schedule_id: str,
-    tenant_id: str = Depends(get_tenant_id),
+    request: Request,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    data = await _load_export_data(schedule_id, tenant_id, db)
+    data = await _load_export_data(schedule_id, user.tenant_id, db)
     schedule = data["schedule"]
 
     from ..services.export_excel import generate_schedule_excel
@@ -199,6 +215,9 @@ async def export_excel(
     )
 
     filename = f"schedule_{schedule.name or schedule_id[:8]}.xlsx"
+    await record_audit(db, tenant_id=user.tenant_id, action="EXPORT", resource_type="schedule",
+                       user_id=user.id, user_email=user.email, resource_id=schedule_id,
+                       detail={"format": "excel", "name": schedule.name}, request=request)
     return StreamingResponse(
         buf,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -209,10 +228,11 @@ async def export_excel(
 @router.get("/{schedule_id}/export/pdf")
 async def export_pdf(
     schedule_id: str,
-    tenant_id: str = Depends(get_tenant_id),
+    request: Request,
+    user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    data = await _load_export_data(schedule_id, tenant_id, db)
+    data = await _load_export_data(schedule_id, user.tenant_id, db)
     schedule = data["schedule"]
 
     from ..services.export_pdf import generate_schedule_pdf
@@ -235,6 +255,9 @@ async def export_pdf(
     )
 
     filename = f"schedule_{schedule.name or schedule_id[:8]}.pdf"
+    await record_audit(db, tenant_id=user.tenant_id, action="EXPORT", resource_type="schedule",
+                       user_id=user.id, user_email=user.email, resource_id=schedule_id,
+                       detail={"format": "pdf", "name": schedule.name}, request=request)
     return StreamingResponse(
         buf,
         media_type="application/pdf",

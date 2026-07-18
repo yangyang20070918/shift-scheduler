@@ -13,6 +13,7 @@ import ScheduleResultPage from './pages/schedules/ScheduleResultPage'
 import ScheduleDetailPage from './pages/schedules/ScheduleDetailPage'
 import ConstraintsPage from './pages/constraints/ConstraintsPage'
 import GroupsPage from './pages/groups/GroupsPage'
+import AuditLogPage from './pages/audit/AuditLogPage'
 import PersonalPage from './pages/personal/PersonalPage'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -78,6 +79,7 @@ export default function App() {
                 <Route path="schedules/:id/result" element={<ScheduleResultPage />} />
                 <Route path="constraints" element={<ConstraintsPage />} />
                 <Route path="groups" element={<GroupsPage />} />
+                <Route path="audit-logs" element={<AuditLogPage />} />
               </Route>
             </Routes>
           </BrowserRouter>

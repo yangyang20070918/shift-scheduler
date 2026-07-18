@@ -9,6 +9,7 @@ import {
   ApartmentOutlined,
   MenuOutlined,
   SwapOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons'
 import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../store/auth'
@@ -28,6 +29,7 @@ export default function AppLayout() {
     { key: '/groups', icon: <ApartmentOutlined />, label: 'グループ' },
     { key: '/constraints', icon: <SafetyOutlined />, label: '個人制約' },
     { key: '/schedules', icon: <ScheduleOutlined />, label: 'スケジュール' },
+    { key: '/audit-logs', icon: <FileTextOutlined />, label: '操作ログ' },
   ]
 
   function handleMenuClick(key: string) {
