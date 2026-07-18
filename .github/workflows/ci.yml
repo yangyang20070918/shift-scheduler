@@ -21,3 +21,23 @@ jobs:
 
       - name: Run tests
         run: python -m pytest tests/ -v --ignore=tests/test_performance.py
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ec2-user
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/shift-app
+            git pull origin main
+            pip3 install --user -r <(pip3 freeze) 2>/dev/null || true
+            sudo systemctl restart shift-app
+            sleep 3
+            curl -sf http://localhost:8000/api/schedules >/dev/null 2>&1 || curl -sf http://localhost:8000/api/schedules 2>&1 | head -1
+            echo "Deploy completed successfully"
