@@ -10,7 +10,11 @@ RUN npm run build
 FROM python:3.12-slim
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgomp1 \
+    libfreetype6 \
+    libjpeg62-turbo \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml ./
 COPY api/ ./api/
