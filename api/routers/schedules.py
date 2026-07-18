@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import uuid
 from datetime import date
 
@@ -12,6 +13,7 @@ from ..database import async_session, get_db
 from ..deps import get_current_user, get_tenant_id
 from ..models.user import User
 from ..services.audit import record_audit
+from ..services.s3 import upload_export
 from ..models.demand import DailyDemand, GroupDemand, PatternDemand
 from ..models.group import Group, GroupMember
 from ..models.member import Member
@@ -215,11 +217,14 @@ async def export_excel(
     )
 
     filename = f"schedule_{schedule.name or schedule_id[:8]}.xlsx"
+    content = buf.read()
+    s3_key = f"exports/{user.tenant_id}/{schedule_id}/{filename}"
+    s3_uri = upload_export(s3_key, content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     await record_audit(db, tenant_id=user.tenant_id, action="EXPORT", resource_type="schedule",
                        user_id=user.id, user_email=user.email, resource_id=schedule_id,
-                       detail={"format": "excel", "name": schedule.name}, request=request)
+                       detail={"format": "excel", "name": schedule.name, "s3_uri": s3_uri}, request=request)
     return StreamingResponse(
-        buf,
+        io.BytesIO(content),
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
@@ -255,11 +260,14 @@ async def export_pdf(
     )
 
     filename = f"schedule_{schedule.name or schedule_id[:8]}.pdf"
+    content = buf.read()
+    s3_key = f"exports/{user.tenant_id}/{schedule_id}/{filename}"
+    s3_uri = upload_export(s3_key, content, "application/pdf")
     await record_audit(db, tenant_id=user.tenant_id, action="EXPORT", resource_type="schedule",
                        user_id=user.id, user_email=user.email, resource_id=schedule_id,
-                       detail={"format": "pdf", "name": schedule.name}, request=request)
+                       detail={"format": "pdf", "name": schedule.name, "s3_uri": s3_uri}, request=request)
     return StreamingResponse(
-        buf,
+        io.BytesIO(content),
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
